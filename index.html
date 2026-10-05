@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>人格测评 · 四套量表</title>
+<style>
+:root{--bg:#f4f2ef;--card:#fff;--ink:#3d3a37;--mute:#8b847b;--line:#e2ddd6;--acc:#7C6C83;--acc2:#615050;}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;padding:0 12px 120px;background:var(--bg);color:var(--ink);
+ font-family:-apple-system,"Noto Sans CJK SC","Source Han Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+ font-size:15px;line-height:1.6}
+h1{font-size:19px;margin:18px 0 6px;color:var(--acc2)}
+.sub{color:var(--mute);font-size:13px;margin:0 0 14px}
+.intro{background:var(--card);border-radius:12px;padding:14px 16px;margin-bottom:14px;font-size:13.5px;color:#585149}
+.intro b{color:var(--acc2)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+.chip{border:1px solid var(--line);background:var(--card);color:var(--mute);border-radius:999px;
+ padding:5px 12px;font-size:12.5px}
+.chip.done{border-color:var(--acc);color:var(--acc)}
+h2{font-size:16.5px;margin:26px 0 4px;color:var(--acc2);border-left:4px solid var(--acc);padding-left:9px}
+.note{font-size:12.5px;color:var(--mute);margin:4px 0 10px}
+.legend{display:flex;flex-wrap:wrap;gap:10px;font-size:11.5px;color:var(--mute);margin:6px 0 10px}
+.legend span{white-space:nowrap}
+.item{background:var(--card);border-radius:10px;padding:11px 12px 9px;margin:8px 0;
+ box-shadow:0 1px 2px rgba(80,70,60,.06)}
+.qt{font-size:14.5px;margin-bottom:9px;color:#332f2b}
+.opts{display:flex;gap:5px}
+.opt{flex:1;text-align:center;border:1px solid var(--line);border-radius:8px;padding:9px 0;
+ font-size:13px;color:#9a9288;cursor:pointer;transition:.12s;font-variant-numeric:tabular-nums}
+.opt.on{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600}
+#bar{position:fixed;left:0;right:0;top:0;height:4px;background:transparent;z-index:9}
+#bar>i{display:block;height:100%;width:0;background:var(--acc);transition:width .2s}
+#foot{position:fixed;left:0;right:0;bottom:0;background:rgba(244,242,239,.96);
+ border-top:1px solid var(--line);padding:9px 12px calc(9px + env(safe-area-inset-bottom));z-index:9}
+#foot .st{font-size:12px;color:var(--mute);text-align:center;margin-bottom:7px}
+button.main{width:100%;border:0;border-radius:10px;background:var(--acc);color:#fff;font-size:15px;
+ padding:12px;font-weight:600}
+#result{display:none;background:var(--card);border-radius:12px;padding:14px;margin-top:20px;
+ box-shadow:0 1px 3px rgba(80,70,60,.1)}
+#result h3{color:var(--acc2);font-size:15px;margin:14px 0 4px}
+#result h3:first-child{margin-top:0}
+textarea{width:100%;height:260px;border:1px solid var(--line);border-radius:8px;padding:10px;
+ font-family:ui-monospace,Menlo,monospace;font-size:12px;line-height:1.5;color:#33302c;background:#faf8f5}
+.small{font-size:12px;color:var(--mute);margin:8px 0}
+.sc{display:flex;justify-content:space-between;font-size:13.5px;padding:5px 0;border-bottom:1px dashed var(--line)}
+.sc b{color:var(--acc2);font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+<div id="bar"><i></i></div>
+<h1>人格测评 · 四套量表</h1>
+<p class="sub">HEXACO-100 · IPIP-NEO-120 · SD3 · ECR-R</p>
+<div class="intro">
+ <div id="introText"></div>
+ <div style="margin-top:8px">共有 <b id="totQ"></b> 题。做完点底部按钮出结果，页面会给你一段可直接复制的文本，粘贴回对话即可。</div>
+</div>
+<div class="chips" id="chips"></div>
+<div id="app"></div>
+<div id="result"></div>
+<div id="foot">
+ <div class="st" id="stat">已答 0 / 0</div>
+ <button class="main" id="go">出结果</button>
+</div>
+<script>
+const DATA = {"scales": [{"key": "HEXACO", "name": "HEXACO-100 六因素人格", "intro": "六因素模型：在大五基础上单列「诚实-谦逊」维度。每题 5 级，按你平时的样子作答。", "options": ["强烈反对", "反对", "中立", "同意", "强烈同意"], "min": 1, "max": 5, "items": [{"t": "我觉得参观美术馆很无聊。", "sub": "经验开放性", "facet": "审美欣赏", "rev": true}, {"t": "我经常清理自己的办公室或居家环境。", "sub": "尽责性", "facet": "条理性", "rev": false}, {"t": "我很少有怨恨，即使面对那些对我很坏的人。", "sub": "宜人性", "facet": "宽恕性", "rev": false}, {"t": "整体而言我对自己还算满意。", "sub": "外向性", "facet": "社交自尊", "rev": false}, {"t": "如果我必须在恶劣天气下出行，我会感到害怕。", "sub": "情绪性", "facet": "恐惧性", "rev": false}, {"t": "如果我想从我讨厌的人那里得到点什么，我会假装对那个人很友善。", "sub": "诚实-谦逊", "facet": "真诚性", "rev": true}, {"t": "我喜欢去学习外国的历史和政治。", "sub": "经验开放性", "facet": "求知欲", "rev": false}, {"t": "工作时，我常为自己定下高远的目标。", "sub": "尽责性", "facet": "勤勉性", "rev": false}, {"t": "有时候别人告诉我，我对别人太挑剔。", "sub": "宜人性", "facet": "温和性", "rev": true}, {"t": "在团体讨论中，我很少表达自己的意见。", "sub": "外向性", "facet": "社交大胆", "rev": true}, {"t": "在一些时候，我会不由自主地为一些小事而感到焦躁不安。", "sub": "情绪性", "facet": "焦虑性", "rev": false}, {"t": "如果知道自己永远不会被抓，我会愿意去偷一百万元人民币。", "sub": "诚实-谦逊", "facet": "公平性", "rev": true}, {"t": "我喜欢做遵照惯例、简单重复的工作，而不是需要创意的工作。", "sub": "经验开放性", "facet": "创造性", "rev": true}, {"t": "为了找出任何可能的错误，我会反复检查自己的工作。", "sub": "尽责性", "facet": "完美主义", "rev": false}, {"t": "有时候别人认为我太顽固。", "sub": "宜人性", "facet": "灵活性", "rev": true}, {"t": "我常常会避免跟别人闲聊。", "sub": "外向性", "facet": "社交性", "rev": true}, {"t": "当我遭遇到痛苦的经历时，我需要别人的安慰。", "sub": "情绪性", "facet": "依赖性", "rev": false}, {"t": "对我来说，拥有很多金钱不是特别重要。", "sub": "诚实-谦逊", "facet": "贪婪回避", "rev": false}, {"t": "我认为关注标新立异的想法是在浪费时间。", "sub": "经验开放性", "facet": "非传统性", "rev": true}, {"t": "我在做决定的时候常常依赖自己当时的感受，而不会去仔细思考和比较得失。", "sub": "尽责性", "facet": "审慎性", "rev": true}, {"t": "别人认为我是一个很暴躁的人。", "sub": "宜人性", "facet": "耐心", "rev": true}, {"t": "几乎所有时候我都精力充沛。", "sub": "外向性", "facet": "活力性", "rev": false}, {"t": "看到别人哭时，我也会想哭。", "sub": "情绪性", "facet": "感伤性", "rev": false}, {"t": "我认为自己是个普普通通的人，并不比别人优秀。", "sub": "诚实-谦逊", "facet": "谦虚性", "rev": false}, {"t": "我不愿花时间去阅读诗集。", "sub": "经验开放性", "facet": "审美欣赏", "rev": true}, {"t": "我会在事前计划和组织要做的事，避免最后一分钟手忙脚乱。", "sub": "尽责性", "facet": "条理性", "rev": false}, {"t": "面对那些对我很坏的人，我的态度通常是“原谅与忘记”。", "sub": "宜人性", "facet": "宽恕性", "rev": false}, {"t": "我认为大多数人喜欢我性格中的某些方面。", "sub": "外向性", "facet": "社交自尊", "rev": false}, {"t": "我不介意去做一些有危险性的工作。", "sub": "情绪性", "facet": "恐惧性", "rev": true}, {"t": "即使讨好奉迎能帮我加薪或晋升，我也不会这么做。", "sub": "诚实-谦逊", "facet": "真诚性", "rev": false}, {"t": "我喜欢看不同地方的地图。", "sub": "经验开放性", "facet": "求知欲", "rev": false}, {"t": "为了达到目标，我通常把自己逼得很紧。", "sub": "尽责性", "facet": "勤勉性", "rev": false}, {"t": "我通常能接受别人的缺点，而不去抱怨。", "sub": "宜人性", "facet": "温和性", "rev": false}, {"t": "在社交场合里，我通常是那个先主动开口攀谈的人。", "sub": "外向性", "facet": "社交大胆", "rev": false}, {"t": "比起大多数人，我担心的事少了很多。", "sub": "情绪性", "facet": "焦虑性", "rev": true}, {"t": "如果经济拮据，我可能会经受不住诱惑去购买赃物。", "sub": "诚实-谦逊", "facet": "公平性", "rev": true}, {"t": "我喜欢从事艺术创作，例如，写小说、写歌、绘画。", "sub": "经验开放性", "facet": "创造性", "rev": false}, {"t": "做事时，我往往不太注意小细节。", "sub": "尽责性", "facet": "完美主义", "rev": true}, {"t": "当别人不同意我的时候，我通常能让自己的意见保持相当的弹性。", "sub": "宜人性", "facet": "灵活性", "rev": false}, {"t": "我喜欢身边常有人可以一起说说话。", "sub": "外向性", "facet": "社交性", "rev": false}, {"t": "我可以面对困难的处境而不需要任何人的情感支持。", "sub": "情绪性", "facet": "依赖性", "rev": true}, {"t": "我希望能够住在一个很昂贵而且很高级的社区。", "sub": "诚实-谦逊", "facet": "贪婪回避", "rev": true}, {"t": "我喜欢那些对事情有独特见解的人。", "sub": "经验开放性", "facet": "非传统性", "rev": false}, {"t": "我因采取行动前没有仔细思考而犯下很多错误。", "sub": "尽责性", "facet": "审慎性", "rev": true}, {"t": "即使别人对待我很差，我也很少生气。", "sub": "宜人性", "facet": "耐心", "rev": false}, {"t": "大多数日子里，我都感到愉快和乐观。", "sub": "外向性", "facet": "活力性", "rev": false}, {"t": "当与我很亲近的人不开心的时候，我往往会感同身受。", "sub": "情绪性", "facet": "感伤性", "rev": false}, {"t": "我不希望别人把我当成比他们高人一等的人来对待。", "sub": "诚实-谦逊", "facet": "谦虚性", "rev": false}, {"t": "如果我有机会，我会想去参加古典音乐会。", "sub": "经验开放性", "facet": "审美欣赏", "rev": false}, {"t": "别人时常拿我房间或桌子的凌乱开玩笑。", "sub": "尽责性", "facet": "条理性", "rev": true}, {"t": "如果有人欺骗过我一次，我以后都会怀疑这人。", "sub": "宜人性", "facet": "宽恕性", "rev": true}, {"t": "我觉得自己是个不受欢迎的人。", "sub": "外向性", "facet": "社交自尊", "rev": true}, {"t": "面对可能使身体受伤的险境，我会很害怕。", "sub": "情绪性", "facet": "恐惧性", "rev": false}, {"t": "如果我想从某人那里得到点什么，即使他讲的笑话再难听，我也会跟着大笑。", "sub": "诚实-谦逊", "facet": "真诚性", "rev": true}, {"t": "我觉得关于科学史和科技史的书都很无趣。", "sub": "经验开放性", "facet": "求知欲", "rev": true}, {"t": "我为自己定下的目标，常常最后未完成就放弃。", "sub": "尽责性", "facet": "勤勉性", "rev": true}, {"t": "评价别人的时候，我通常比较宽厚。", "sub": "宜人性", "facet": "温和性", "rev": false}, {"t": "在团体中，我常是那个代表团体说话的人。", "sub": "外向性", "facet": "社交大胆", "rev": false}, {"t": "我几乎从不因为压力或焦虑而失眠。", "sub": "情绪性", "facet": "焦虑性", "rev": true}, {"t": "即使很有价值或金额很大，我也绝不会接受贿赂。", "sub": "诚实-谦逊", "facet": "公平性", "rev": false}, {"t": "别人经常说我有很好的想象力。", "sub": "经验开放性", "facet": "创造性", "rev": false}, {"t": "为了工作准确无误，我不惜花很多时间。", "sub": "尽责性", "facet": "完美主义", "rev": false}, {"t": "当别人说我错了的时候，通常我的第一个反应就是跟他们争辩。", "sub": "宜人性", "facet": "灵活性", "rev": true}, {"t": "比起独自工作，我更喜欢需要频繁与人打交道的工作。", "sub": "外向性", "facet": "社交性", "rev": false}, {"t": "每当我忧心某些事，我总想跟别人说说自己的忧虑。", "sub": "情绪性", "facet": "依赖性", "rev": false}, {"t": "我想让别人看到我开着名贵的轿车。", "sub": "诚实-谦逊", "facet": "贪婪回避", "rev": true}, {"t": "我觉得自己算是一个有点古怪的人。", "sub": "经验开放性", "facet": "非传统性", "rev": false}, {"t": "我不会因为冲动而做出不理智的行为。", "sub": "尽责性", "facet": "审慎性", "rev": false}, {"t": "大多数的人比我容易生气。", "sub": "宜人性", "facet": "耐心", "rev": false}, {"t": "别人常常对我说，我应该试着快乐起来。", "sub": "外向性", "facet": "活力性", "rev": true}, {"t": "当亲近的人要离开一段很长的时间，我会有很深的感伤。", "sub": "情绪性", "facet": "感伤性", "rev": false}, {"t": "我认为我比一般人更有资格得到更多尊重。", "sub": "诚实-谦逊", "facet": "谦虚性", "rev": true}, {"t": "有时候，我喜欢静静地看着微风拂动树叶。", "sub": "经验开放性", "facet": "审美欣赏", "rev": false}, {"t": "在工作上，我有时候会因为没有事先进行很好的计划而遇到困难。", "sub": "尽责性", "facet": "条理性", "rev": true}, {"t": "我觉得很难完全原谅曾对我刻薄的人。", "sub": "宜人性", "facet": "宽恕性", "rev": true}, {"t": "我有时会觉得自己一文不值。", "sub": "外向性", "facet": "社交自尊", "rev": true}, {"t": "即使面对危急情况，我不会感觉到惊慌。", "sub": "情绪性", "facet": "恐惧性", "rev": true}, {"t": "我不会为了让别人帮我做事而假装喜欢对方。", "sub": "诚实-谦逊", "facet": "真诚性", "rev": false}, {"t": "翻阅百科全书这件事，我从没真正喜欢过。", "sub": "经验开放性", "facet": "求知欲", "rev": true}, {"t": "在工作上，我基本上只做应付过去所需的最低限度工作。", "sub": "尽责性", "facet": "勤勉性", "rev": true}, {"t": "即使在别人犯了很多错误的时候，我也很少说难听的话。", "sub": "宜人性", "facet": "温和性", "rev": false}, {"t": "在一群人面前说话，我会感到非常不自然。", "sub": "外向性", "facet": "社交大胆", "rev": true}, {"t": "在等待一些重大决定的结果时，我会变得非常焦躁。", "sub": "情绪性", "facet": "焦虑性", "rev": false}, {"t": "如果我确定绝不会被抓到，我会禁不住诱惑使用伪钞。", "sub": "诚实-谦逊", "facet": "公平性", "rev": true}, {"t": "我不认为自己是那种有艺术天赋或创意的人。", "sub": "经验开放性", "facet": "创造性", "rev": true}, {"t": "别人常说我是个完美主义者。", "sub": "尽责性", "facet": "完美主义", "rev": false}, {"t": "当我坚信自己是正确的时候，我觉得自己很难去跟人妥协。", "sub": "宜人性", "facet": "灵活性", "rev": true}, {"t": "通常我到新环境做的第一件事就是交新朋友。", "sub": "外向性", "facet": "社交性", "rev": false}, {"t": "我很少跟别人讨论自己的问题。", "sub": "情绪性", "facet": "依赖性", "rev": true}, {"t": "如果有机会可以拥有昂贵的奢侈品，我会获得很大的快乐。", "sub": "诚实-谦逊", "facet": "贪婪回避", "rev": true}, {"t": "我觉得讨论哲学很乏味。", "sub": "经验开放性", "facet": "非传统性", "rev": true}, {"t": "我喜欢想到什么就做什么，不喜欢按计划行事。", "sub": "尽责性", "facet": "审慎性", "rev": true}, {"t": "当有人侮辱我时，我觉得很难去控制自己的脾气。", "sub": "宜人性", "facet": "耐心", "rev": true}, {"t": "大多数人都比平常的我要更乐观和更有活力。", "sub": "外向性", "facet": "活力性", "rev": true}, {"t": "即使在会让大多数人变得很感伤的情境中，我仍可不动情感。", "sub": "情绪性", "facet": "感伤性", "rev": true}, {"t": "我想让别人知道我是个地位高的重要人物。", "sub": "诚实-谦逊", "facet": "谦虚性", "rev": true}, {"t": "我会同情那些比我更不幸的人。", "sub": "利他主义", "facet": "利他主义", "rev": false}, {"t": "我会慷慨地为那些有需要的人提供帮助。", "sub": "利他主义", "facet": "利他主义", "rev": false}, {"t": "伤害一个我不喜欢的人，我也不会觉得不安。", "sub": "利他主义", "facet": "利他主义", "rev": true}, {"t": "别人觉得我是个心肠很硬的人。", "sub": "利他主义", "facet": "利他主义", "rev": true}], "subNames": {"诚实-谦逊": "诚实-谦逊", "情绪性": "情绪性", "外向性": "外向性", "宜人性": "宜人性", "尽责性": "尽责性", "经验开放性": "经验开放性", "利他主义": "利他主义"}, "score": "mean", "note": "6 个主维度各 16 题；「利他主义」为 4 题附加维度。"}, {"key": "IPIP", "name": "IPIP-NEO-120 大五人格", "intro": "5 大维度 × 30 个侧面，每题按「这句话有多符合你」作答。", "options": ["非常不准确", "不太准确", "一般", "比较准确", "非常准确"], "min": 1, "max": 5, "items": [{"t": "杞人忧天", "sub": "N", "facet": "N1", "rev": false}, {"t": "平易近人", "sub": "E", "facet": "E1", "rev": false}, {"t": "天马行空", "sub": "O", "facet": "O1", "rev": false}, {"t": "推心置腹", "sub": "A", "facet": "A1", "rev": false}, {"t": "不辱使命", "sub": "C", "facet": "C1", "rev": false}, {"t": "易怒", "sub": "N", "facet": "N2", "rev": false}, {"t": "喜欢参加大型聚会", "sub": "E", "facet": "E2", "rev": false}, {"t": "相信艺术的重要性", "sub": "O", "facet": "O2", "rev": false}, {"t": "借刀杀人", "sub": "A", "facet": "A2", "rev": true}, {"t": "洁身自好", "sub": "C", "facet": "C2", "rev": false}, {"t": "易伤感", "sub": "N", "facet": "N3", "rev": false}, {"t": "负责", "sub": "E", "facet": "E3", "rev": false}, {"t": "自我陶醉", "sub": "O", "facet": "O3", "rev": false}, {"t": "乐于助人", "sub": "A", "facet": "A3", "rev": false}, {"t": "遵守诺言", "sub": "C", "facet": "C3", "rev": false}, {"t": "善察言观色", "sub": "N", "facet": "N4", "rev": false}, {"t": "日理万机", "sub": "E", "facet": "E4", "rev": false}, {"t": "喜欢多样化，不喜欢千篇一律", "sub": "O", "facet": "O4", "rev": false}, {"t": "爱干架", "sub": "A", "facet": "A4", "rev": true}, {"t": "工作努力", "sub": "C", "facet": "C4", "rev": false}, {"t": "狂欢作乐", "sub": "N", "facet": "N5", "rev": false}, {"t": "喜爱刺激", "sub": "E", "facet": "E5", "rev": false}, {"t": "喜爱挑战", "sub": "O", "facet": "O5", "rev": false}, {"t": "自信", "sub": "A", "facet": "A5", "rev": true}, {"t": "时刻有准备", "sub": "C", "facet": "C5", "rev": false}, {"t": "易惊慌失措", "sub": "N", "facet": "N6", "rev": false}, {"t": "流露出欢乐", "sub": "E", "facet": "E6", "rev": false}, {"t": "倾向于投票给自由派的政治候选人", "sub": "O", "facet": "O6", "rev": false}, {"t": "同情无家可归之人", "sub": "A", "facet": "A6", "rev": false}, {"t": "不假思索地做事情", "sub": "C", "facet": "C6", "rev": true}, {"t": "作最坏的打算", "sub": "N", "facet": "N1", "rev": false}, {"t": "感觉周围的人很好", "sub": "E", "facet": "E1", "rev": false}, {"t": "享受疯狂的幻想飞行", "sub": "O", "facet": "O1", "rev": false}, {"t": "相信别人有好的意图", "sub": "A", "facet": "A1", "rev": false}, {"t": "擅长我的工作", "sub": "C", "facet": "C1", "rev": false}, {"t": "很容易生气", "sub": "N", "facet": "N2", "rev": false}, {"t": "在聚会上会和很多不同的人交谈", "sub": "E", "facet": "E2", "rev": false}, {"t": "从别人可能不会注意到的事物中看到美", "sub": "O", "facet": "O2", "rev": false}, {"t": "为了成功不择手段", "sub": "A", "facet": "A2", "rev": true}, {"t": "健忘", "sub": "C", "facet": "C2", "rev": true}, {"t": "不喜欢自己", "sub": "N", "facet": "N3", "rev": false}, {"t": "试着去领导别人", "sub": "E", "facet": "E3", "rev": false}, {"t": "感受别人的情绪", "sub": "O", "facet": "O3", "rev": false}, {"t": "关心他人", "sub": "A", "facet": "A3", "rev": false}, {"t": "诚实", "sub": "C", "facet": "C3", "rev": false}, {"t": "害怕引起别人的注意", "sub": "N", "facet": "N4", "rev": false}, {"t": "总是忙个不停", "sub": "E", "facet": "E4", "rev": false}, {"t": "喜欢坚持我知道的事情", "sub": "O", "facet": "O4", "rev": true}, {"t": "对人们大喊大叫", "sub": "A", "facet": "A4", "rev": true}, {"t": "期望做的更多", "sub": "C", "facet": "C4", "rev": false}, {"t": "很少放纵", "sub": "N", "facet": "N5", "rev": true}, {"t": "寻求冒险", "sub": "E", "facet": "E5", "rev": false}, {"t": "避免进行哲学讨论", "sub": "O", "facet": "O5", "rev": true}, {"t": "自我感觉良好", "sub": "A", "facet": "A5", "rev": true}, {"t": "执行我的计划", "sub": "C", "facet": "C5", "rev": false}, {"t": "被各种事情淹没", "sub": "N", "facet": "N6", "rev": false}, {"t": "玩得很开心", "sub": "E", "facet": "E6", "rev": false}, {"t": "相信没有绝对的对与错", "sub": "O", "facet": "O6", "rev": false}, {"t": "同情那些比我糟糕的人", "sub": "A", "facet": "A6", "rev": false}, {"t": "鲁莽行事", "sub": "C", "facet": "C6", "rev": true}, {"t": "害怕很多事情", "sub": "N", "facet": "N1", "rev": false}, {"t": "避免与他人接触", "sub": "E", "facet": "E1", "rev": true}, {"t": "喜欢做白日梦", "sub": "O", "facet": "O1", "rev": false}, {"t": "相信别人所说的", "sub": "A", "facet": "A1", "rev": false}, {"t": "顺利处理任务", "sub": "C", "facet": "C1", "rev": false}, {"t": "开始发脾气", "sub": "N", "facet": "N2", "rev": false}, {"t": "喜欢独自一人", "sub": "E", "facet": "E2", "rev": true}, {"t": "不喜欢诗歌", "sub": "O", "facet": "O2", "rev": true}, {"t": "利用他人", "sub": "A", "facet": "A2", "rev": true}, {"t": "我的房间一团糟", "sub": "C", "facet": "C2", "rev": true}, {"t": "我经常情绪低落", "sub": "N", "facet": "N3", "rev": false}, {"t": "掌控一切", "sub": "E", "facet": "E3", "rev": false}, {"t": "很少注意到我的情绪反应", "sub": "O", "facet": "O3", "rev": true}, {"t": "对别人漠不关心", "sub": "A", "facet": "A3", "rev": true}, {"t": "打破规则", "sub": "C", "facet": "C3", "rev": true}, {"t": "只有和朋友在一起才觉得舒服", "sub": "N", "facet": "N4", "rev": false}, {"t": "在业余时间做很多事", "sub": "E", "facet": "E4", "rev": false}, {"t": "比喜欢改变", "sub": "O", "facet": "O4", "rev": true}, {"t": "侮辱他人", "sub": "A", "facet": "A4", "rev": true}, {"t": "完成足够的工作", "sub": "C", "facet": "C4", "rev": true}, {"t": "轻松抵制诱惑", "sub": "N", "facet": "N5", "rev": true}, {"t": "做事不计后果", "sub": "E", "facet": "E5", "rev": false}, {"t": "难以理解抽象的概念", "sub": "O", "facet": "O5", "rev": true}, {"t": "对自己有很高的评价", "sub": "A", "facet": "A5", "rev": true}, {"t": "浪费我的时间", "sub": "C", "facet": "C5", "rev": true}, {"t": "觉得我无法处理事情", "sub": "N", "facet": "N6", "rev": false}, {"t": "热爱生活", "sub": "E", "facet": "E6", "rev": false}, {"t": "倾向于投票给保守派的政治候选人", "sub": "O", "facet": "O6", "rev": true}, {"t": "对他人的问题不感兴趣", "sub": "A", "facet": "A6", "rev": true}, {"t": "做事急躁", "sub": "C", "facet": "C6", "rev": true}, {"t": "易感受到压力", "sub": "N", "facet": "N1", "rev": false}, {"t": "与人保持距离", "sub": "E", "facet": "E1", "rev": true}, {"t": "喜欢沉思", "sub": "O", "facet": "O1", "rev": false}, {"t": "不相信他人", "sub": "A", "facet": "A1", "rev": true}, {"t": "知道如何把事情做好", "sub": "C", "facet": "C1", "rev": false}, {"t": "不轻易生气", "sub": "N", "facet": "N2", "rev": true}, {"t": "不随波逐流", "sub": "E", "facet": "E2", "rev": true}, {"t": "不喜欢去艺术博物馆", "sub": "O", "facet": "O2", "rev": true}, {"t": "阻碍别人的计划", "sub": "A", "facet": "A2", "rev": true}, {"t": "忘记我的随身物品", "sub": "C", "facet": "C2", "rev": true}, {"t": "感觉自己挺好", "sub": "N", "facet": "N3", "rev": true}, {"t": "等待他人带路", "sub": "E", "facet": "E3", "rev": true}, {"t": "不理解情绪化的人", "sub": "O", "facet": "O3", "rev": true}, {"t": "不为别人浪费时间", "sub": "A", "facet": "A3", "rev": true}, {"t": "不守信", "sub": "C", "facet": "C3", "rev": true}, {"t": "没有社交困扰", "sub": "N", "facet": "N4", "rev": true}, {"t": "喜欢放松", "sub": "E", "facet": "E4", "rev": true}, {"t": "古板守旧", "sub": "O", "facet": "O4", "rev": true}, {"t": "以牙还牙", "sub": "A", "facet": "A4", "rev": true}, {"t": "花很少时间和精力在工作上", "sub": "C", "facet": "C4", "rev": true}, {"t": "能够控制住我的冲动", "sub": "N", "facet": "N5", "rev": true}, {"t": "表现得疯狂", "sub": "E", "facet": "E5", "rev": false}, {"t": "不喜欢讨论理论", "sub": "O", "facet": "O5", "rev": true}, {"t": "有良好的道德感", "sub": "A", "facet": "A5", "rev": true}, {"t": "很难开始一件事情", "sub": "C", "facet": "C5", "rev": true}, {"t": "在压力下保持冷静", "sub": "N", "facet": "N6", "rev": true}, {"t": "对生活充满希望", "sub": "E", "facet": "E6", "rev": false}, {"t": "相信我们应该眼里打击犯罪", "sub": "O", "facet": "O6", "rev": true}, {"t": "忽视那些需要帮助的人", "sub": "A", "facet": "A6", "rev": true}, {"t": "做事果断干脆", "sub": "C", "facet": "C6", "rev": true}], "subNames": {"N": "神经质", "E": "外向性", "O": "开放性", "A": "宜人性", "C": "尽责性"}, "facetNames": {"N": ["焦虑", "愤怒", "抑郁", "自我意识", "自我放纵", "脆弱"], "E": ["友善", "合群", "果断", "活跃度", "寻求刺激", "愉快"], "O": ["想象", "艺术兴趣", "情感丰富度", "冒险", "思辨", "观念开放"], "A": ["信任", "道德感", "利他", "合作", "谦虚", "同情"], "C": ["自我效能", "条理性", "尽职", "追求成就", "自律", "谨慎"]}, "score": "sum4", "note": "每侧面 4 题（4–20 分），每大维度 24 题（24–120 分）。"}, {"key": "SD3", "name": "SD3 短式黑暗三联征", "intro": "测量三种亚临床「暗黑」人际特质。带 (R) 的为反向题，页面已自动处理。", "options": ["非常不同意", "不同意", "中立", "同意", "非常同意"], "min": 1, "max": 5, "items": [{"t": "把自己的秘密告诉别人是不明智的。", "sub": "M", "facet": null, "rev": false}, {"t": "人们把我视为天生的领导者。", "sub": "N", "facet": null, "rev": false}, {"t": "我喜欢向那些当权者报复。", "sub": "P", "facet": null, "rev": false}, {"t": "我喜欢用巧妙的手段操纵局面，来达到自己的目的。", "sub": "M", "facet": null, "rev": false}, {"t": "我讨厌成为众人关注的焦点。", "sub": "N", "facet": null, "rev": true}, {"t": "我会避开危险的处境。", "sub": "P", "facet": null, "rev": true}, {"t": "不惜一切代价，也要把重要人物拉到自己这边。", "sub": "M", "facet": null, "rev": false}, {"t": "我不在场时，很多集体活动都会变得乏味。", "sub": "N", "facet": null, "rev": false}, {"t": "报复要快、要狠。", "sub": "P", "facet": null, "rev": false}, {"t": "要避免与人正面冲突，因为他们将来可能对你有用。", "sub": "M", "facet": null, "rev": false}, {"t": "我知道自己很特别，因为大家都这么说。", "sub": "N", "facet": null, "rev": false}, {"t": "人们常说我管不住自己。", "sub": "P", "facet": null, "rev": false}, {"t": "记住那些将来可以用来对付别人的信息，是明智的。", "sub": "M", "facet": null, "rev": false}, {"t": "我喜欢结识重要人物。", "sub": "N", "facet": null, "rev": false}, {"t": "我确实会对别人刻薄。", "sub": "P", "facet": null, "rev": false}, {"t": "你应该等待合适的时机再向别人报复。", "sub": "M", "facet": null, "rev": false}, {"t": "别人夸奖我时，我会觉得尴尬。", "sub": "N", "facet": null, "rev": true}, {"t": "惹过我的人都会后悔。", "sub": "P", "facet": null, "rev": false}, {"t": "有些事应该瞒着别人，因为他们没必要知道。", "sub": "M", "facet": null, "rev": false}, {"t": "我被人比作过名人。", "sub": "N", "facet": null, "rev": false}, {"t": "我从未惹上过法律麻烦。", "sub": "P", "facet": null, "rev": true}, {"t": "要确保你的计划对自己有利，而不是对别人有利。", "sub": "M", "facet": null, "rev": false}, {"t": "我是个普通人。", "sub": "N", "facet": null, "rev": true}, {"t": "我享受与不太熟的人发生性关系。", "sub": "P", "facet": null, "rev": false}, {"t": "大多数人是可以被操纵的。", "sub": "M", "facet": null, "rev": false}, {"t": "我坚持要得到我应得的尊重。", "sub": "N", "facet": null, "rev": false}, {"t": "为达目的，我什么话都说得出口。", "sub": "P", "facet": null, "rev": false}], "subNames": {"M": "马基雅维利主义（操控算计）", "N": "自恋（自负、渴求关注）", "P": "精神病态（情感冷漠、低共情）"}, "score": "mean", "note": "每维度 9 题，得分取均值（1–5）。高分只代表该倾向突出，不等于心理障碍。"}, {"key": "ECRR", "name": "ECR-R 依恋类型", "intro": "测量你在亲密关系里的两种核心倾向。请按你对「恋爱关系」的普遍感受作答，而不是只看当下这一段。", "options": ["非常不同意", "比较不同意", "有点不同意", "中立", "有点同意", "比较同意", "非常同意"], "min": 1, "max": 7, "items": [{"t": "我害怕会失去伴侣的爱。", "sub": "A", "facet": null, "rev": false}, {"t": "我不愿让伴侣看到我内心深处的感受。", "sub": "B", "facet": null, "rev": false}, {"t": "我常担心伴侣不愿意和我一直在一起。", "sub": "A", "facet": null, "rev": false}, {"t": "与伴侣分享我私密的想法和感受，让我感到自在。", "sub": "B", "facet": null, "rev": true}, {"t": "我常担心伴侣并不是真的爱我。", "sub": "A", "facet": null, "rev": false}, {"t": "我很难允许自己去依赖恋人。", "sub": "B", "facet": null, "rev": false}, {"t": "我担心恋人不像我关心他/她那样关心我。", "sub": "A", "facet": null, "rev": false}, {"t": "与恋人亲近，让我非常自在。", "sub": "B", "facet": null, "rev": true}, {"t": "我常希望伴侣对我的感情，能像我对他/她的一样强烈。", "sub": "A", "facet": null, "rev": false}, {"t": "向恋人敞开心扉让我不自在。", "sub": "B", "facet": null, "rev": false}, {"t": "我为我的亲密关系忧心忡忡。", "sub": "A", "facet": null, "rev": false}, {"t": "我不喜欢和恋人过于亲近。", "sub": "B", "facet": null, "rev": false}, {"t": "伴侣不在我身边时，我会担心他/她可能对别人产生了兴趣。", "sub": "A", "facet": null, "rev": false}, {"t": "当恋人想非常亲近时，我会觉得不舒服。", "sub": "B", "facet": null, "rev": false}, {"t": "当我向恋人表露感情时，我害怕对方并不和我有同样的感受。", "sub": "A", "facet": null, "rev": false}, {"t": "我发现和伴侣亲近相对容易。", "sub": "B", "facet": null, "rev": true}, {"t": "我很少担心伴侣会离开我。", "sub": "A", "facet": null, "rev": true}, {"t": "和伴侣亲近对我来说不难。", "sub": "B", "facet": null, "rev": true}, {"t": "我的恋人让我怀疑自己。", "sub": "A", "facet": null, "rev": false}, {"t": "我通常会跟伴侣谈我的问题和烦心事。", "sub": "B", "facet": null, "rev": true}, {"t": "我并不常担心被抛弃。", "sub": "A", "facet": null, "rev": true}, {"t": "需要的时候向恋人求助是有帮助的。", "sub": "B", "facet": null, "rev": true}, {"t": "我发现伴侣不想像我期望的那样亲近。", "sub": "A", "facet": null, "rev": false}, {"t": "我几乎什么事都告诉伴侣。", "sub": "B", "facet": null, "rev": true}, {"t": "有时恋人会无缘无故地改变对我的感情。", "sub": "A", "facet": null, "rev": false}, {"t": "我会和伴侣一起商量事情。", "sub": "B", "facet": null, "rev": true}, {"t": "我想极度亲近的渴望，有时会把别人吓跑。", "sub": "A", "facet": null, "rev": false}, {"t": "伴侣靠我太近时，我会紧张。", "sub": "B", "facet": null, "rev": false}, {"t": "我害怕恋人一旦真正了解我，就不会喜欢真实的我。", "sub": "A", "facet": null, "rev": false}, {"t": "依赖恋人让我感到自在。", "sub": "B", "facet": null, "rev": true}, {"t": "从伴侣那里得不到我需要的关爱和支持，这让我很恼火。", "sub": "A", "facet": null, "rev": false}, {"t": "我觉得依赖恋人是件容易的事。", "sub": "B", "facet": null, "rev": true}, {"t": "我担心自己比不上别人。", "sub": "A", "facet": null, "rev": false}, {"t": "对伴侣表达亲昵对我来说很容易。", "sub": "B", "facet": null, "rev": true}, {"t": "似乎只有我生气时，伴侣才会注意到我。", "sub": "A", "facet": null, "rev": false}, {"t": "我的伴侣真的理解我和我的需要。", "sub": "B", "facet": null, "rev": true}], "subNames": {"A": "依恋焦虑（怕被抛弃、怕不够被爱）", "B": "依恋回避（抗拒亲近与依赖）"}, "score": "mean", "note": "两维度各 18 题，得分取均值（1–7）。"}], "sources": {"HEXACO": "HEXACO-100 官方中文简体系（Ashton & Lee；取自开源项目 Poro789/hexaco-test 的官方题本）", "IPIP": "IPIP-NEO-120 中文翻译（Johnson 版；开源题库 Alheimsins/b5-johnson-120-ipip-neo-pi-r，属公有领域 IPIP）", "SD3": "Jones & Paulhus (2014) SD3 英文原题（psytests.org）；中文为本页工作译本", "ECRR": "Fraley, Waller & Brennan (2000) ECR-R 英文原题与计分键（Fraley 实验室官网）；中文为本页工作译本"}};
+const state = {};            // "scale:index" -> value
+const app = document.getElementById('app');
+const subOrder = (s)=>{const o=[];s.items.forEach(it=>{if(o.indexOf(it.sub)<0)o.push(it.sub)});return o;};
+const total = DATA.scales.reduce((a,s)=>a+s.items.length,0);
+document.getElementById('totQ').textContent = total;
+document.getElementById('introText').innerHTML =
+  DATA.scales.map(s=>s.name+'（'+s.items.length+'题）').join('　·　') +
+  '<br><span style="color:#8b847b">全部免费、无广告、不上传任何数据——答案只留在你这台手机上。</span>' +
+  '<br><br><span style="color:#8b847b;font-size:12px">说明：HEXACO 与 IPIP 用的是官方/公开中文题本；SD3 与 ECR-R 的英文题目取自原作者版本，中文为本页工作译本，未采用公开发表的中文修订版。四套结果都只作自我观察，不是诊断，也不替代专业评估。</span>';
+
+// chips
+const chips=document.getElementById('chips');
+DATA.scales.forEach((s,si)=>{const c=document.createElement('div');c.className='chip';c.textContent=s.name;
+ c.onclick=()=>document.getElementById('sec'+si).scrollIntoView({behavior:'smooth'});chips.appendChild(c);});
+
+// build items
+DATA.scales.forEach((s,si)=>{
+  const h=document.createElement('h2');h.id='sec'+si;h.textContent=s.name;app.appendChild(h);
+  const n=document.createElement('div');n.className='note';n.textContent=s.intro+'  '+s.note;app.appendChild(n);
+  const lg=document.createElement('div');lg.className='legend';
+  lg.innerHTML=s.options.map((o,i)=>'<span>'+ (i+1) +'＝'+o+'</span>').join('')+'<span style="color:#b3aca2">（点击数字选择）</span>';
+  app.appendChild(lg);
+  s.items.forEach((it,ii)=>{
+    const d=document.createElement('div');d.className='item';
+    const q=document.createElement('div');q.className='qt';q.textContent=(ii+1)+'. '+it.t;d.appendChild(q);
+    const o=document.createElement('div');o.className='opts';
+    for(let v=s.min;v<=s.max;v++){
+      const b=document.createElement('div');b.className='opt';b.textContent=v;
+      b.onclick=()=>{state[si+':'+ii]=v;
+        [...o.children].forEach(c=>c.classList.remove('on'));b.classList.add('on');upd();};
+      o.appendChild(b);
+    }
+    d.appendChild(o);app.appendChild(d);
+  });
+});
+
+function scaleDone(si){const s=DATA.scales[si];let c=0;for(let i=0;i<s.items.length;i++)if(state[si+':'+i])c++;return c;}
+function upd(){
+  let done=0;DATA.scales.forEach((s,si)=>{done+=scaleDone(si);});
+  document.getElementById('stat').textContent='已答 '+done+' / '+total;
+  document.querySelector('#bar>i').style.width=(done/total*100)+'%';
+  [...chips.children].forEach((c,si)=>{c.classList.toggle('done',scaleDone(si)===DATA.scales[si].items.length);});
+}
+
+function r2(x){return Math.round(x*100)/100;}
+function get(si,i){const v=state[si+':'+i];return v?v:null;}
+
+function computeScale(si){
+  const s=DATA.scales[si],out={domains:[],facets:[],answered:scaleDone(si)};
+  if(s.score==='mean'){
+    const m={};s.items.forEach((it,i)=>{let v=get(si,i);if(v==null)return;if(it.rev)v=s.min+s.max-v;
+      (m[it.sub]=m[it.sub]||[]).push(v);});
+    subOrder(s).forEach(k=>{const a=m[k];if(!a)return;out.domains.push({label:s.subNames[k]||k,val:r2(a.reduce((x,y)=>x+y,0)/a.length),n:a.length,scale:'1–'+s.max});});
+  } else { // IPIP sum4
+    const dm={},fm={};
+    subOrder(s).forEach(k=>dm[k]=[]);
+    s.items.forEach((it,i)=>{let v=get(si,i);if(v==null)return;if(it.rev)v=6-v;dm[it.sub].push(v);
+      (fm[it.facet]=fm[it.facet]||[]).push(v);});
+    subOrder(s).forEach(k=>{const a=dm[k];if(!a.length)return;
+      out.domains.push({label:s.subNames[k]||k,val:a.reduce((x,y)=>x+y,0),n:a.length,scale:'24–120'});});
+    Object.keys(fm).sort().forEach(f=>{
+      const a=fm[f];const dom=f[0];const num=parseInt(f.slice(1),10);
+      const nm=(s.facetNames&&s.facetNames[dom])?s.facetNames[dom][num-1]:f;
+      out.facets.push({label:s.subNames[dom]+'·'+nm,val:a.reduce((x,y)=>x+y,0),n:a.length,scale:'4–20'});});
+  }
+  return out;
+}
+
+document.getElementById('go').onclick=()=>{
+  let missing=[];
+  DATA.scales.forEach((s,si)=>{if(scaleDone(si)<s.items.length)missing.push(s.name+'（还差'+(s.items.length-scaleDone(si))+'题）');});
+  const res=document.getElementById('result');
+  let html='<h3>结果</h3>';
+  if(missing.length)html+='<div class="small" style="color:#A85A4A">未答完：'+missing.join('；')+'。下面只按已答的部分算。</div>';
+  let txt='=== 人格测评结果 ===\n';
+  const names={};
+  DATA.scales.forEach((s,si)=>{
+    const c=computeScale(si);names[s.key]=c;
+    txt+='\n['+s.name+'] 已答 '+c.answered+'/'+s.items.length+'\n';
+    if(s.note)txt+='（计分：'+s.note+'）\n';
+    c.domains.forEach(d=>{txt+=d.label+'：'+d.val+'  ('+d.n+'题, '+d.scale+')\n';});
+    if(c.facets.length){txt+='  — 侧面 —\n';
+      c.facets.forEach(f=>{txt+='  '+f.label+'：'+f.val+'\n';});}
+    html+='<h3>'+s.name+'</h3>';
+    c.domains.forEach(d=>{html+='<div class="sc"><span>'+d.label+'</span><b>'+d.val+' <span style="color:#a39b91;font-weight:400">/'+d.scale+'</span></b></div>';});
+  });
+  // raw answers line
+  let raw='RAW|';
+  DATA.scales.forEach((s,si)=>{raw+=s.key+':';for(let i=0;i<s.items.length;i++){raw+=(state[si+':'+i]||0);}raw+='|';});
+  txt+='\n'+raw+'\n';
+  html+='<div class="small">下面这段文字已包含全部结果，点一下全选，复制后粘回聊天即可：</div>'+
+        '<textarea id="out" readonly>'+txt+'</textarea>'+
+        '<button class="main" style="margin-top:10px" id="cp">全选这段结果</button>';
+  res.style.display='block';res.innerHTML=html;
+  const out=document.getElementById('out');
+  document.getElementById('cp').onclick=()=>{out.focus();out.setSelectionRange(0,out.value.length);try{document.execCommand('copy');}catch(e){}
+    document.getElementById('cp').textContent='已选中（如未复制请长按选择）';};
+  res.scrollIntoView({behavior:'smooth'});
+};
+upd();
+</script>
+</body>
+</html>

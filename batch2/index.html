@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>自我探索测评 · 优势与状态</title>
+<style>
+:root{--bg:#f4f2ef;--card:#fff;--ink:#3d3a37;--mute:#8b847b;--line:#e2ddd6;--acc:#7C6C83;--acc2:#615050;}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;padding:0 12px 130px;background:var(--bg);color:var(--ink);
+ font-family:-apple-system,"Noto Sans CJK SC","Source Han Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+ font-size:15px;line-height:1.6}
+h1{font-size:19px;margin:18px 0 6px;color:var(--acc2)}
+.sub{color:var(--mute);font-size:13px;margin:0 0 14px}
+.intro{background:var(--card);border-radius:12px;padding:14px 16px;margin-bottom:14px;font-size:13.5px;color:#585149}
+.intro b{color:var(--acc2)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+.chip{border:1px solid var(--line);background:var(--card);color:var(--mute);border-radius:999px;
+ padding:5px 12px;font-size:12.5px}
+.chip.done{border-color:var(--acc);color:var(--acc);font-weight:600}
+h2{font-size:16.5px;margin:30px 0 4px;color:var(--acc2);border-left:4px solid var(--acc);padding-left:9px}
+h2 .n{font-size:12px;color:var(--mute);font-weight:400;margin-left:6px}
+.note{font-size:12.5px;color:var(--mute);margin:4px 0 10px}
+.legend{display:flex;flex-wrap:wrap;gap:10px;font-size:11.5px;color:var(--mute);margin:6px 0 10px}
+.legend span{white-space:nowrap}
+.item{background:var(--card);border-radius:10px;padding:11px 12px 9px;margin:8px 0;
+ box-shadow:0 1px 2px rgba(80,70,60,.06)}
+.qt{font-size:14.5px;margin-bottom:9px;color:#332f2b}
+.qt i{color:var(--acc);font-style:normal;font-size:12px;margin-right:5px}
+.opts{display:flex;gap:5px}
+.opt{flex:1;text-align:center;border:1px solid var(--line);border-radius:8px;padding:9px 0;
+ font-size:13px;color:#9a9288;cursor:pointer;transition:.12s;font-variant-numeric:tabular-nums;user-select:none}
+.opt.on{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600}
+input.fill{width:100%;border:1px solid var(--line);border-radius:8px;padding:9px 10px;font-size:14.5px;
+ color:#332f2b;background:#fcfbf9;font-family:inherit}
+input.fill:focus{outline:none;border-color:var(--acc);background:#fff}
+textarea.fill{width:100%;min-height:110px;border:1px solid var(--line);border-radius:8px;padding:9px 10px;
+ font-size:14px;color:#332f2b;background:#fcfbf9;font-family:inherit;line-height:1.55;resize:vertical}
+textarea.fill:focus{outline:none;border-color:var(--acc);background:#fff}
+.hint{font-size:11.5px;color:#b3aca2;margin-top:5px}
+#bar{position:fixed;left:0;right:0;top:0;height:4px;background:transparent;z-index:9}
+#bar>i{display:block;height:100%;width:0;background:var(--acc);transition:width .2s}
+#foot{position:fixed;left:0;right:0;bottom:0;background:rgba(244,242,239,.96);
+ border-top:1px solid var(--line);padding:9px 12px calc(9px + env(safe-area-inset-bottom));z-index:9}
+#foot .st{font-size:12px;color:var(--mute);text-align:center;margin-bottom:7px}
+button.main{width:100%;border:0;border-radius:10px;background:var(--acc);color:#fff;font-size:15px;
+ padding:12px;font-weight:600}
+button.mini{border:1px solid var(--line);background:#fff;border-radius:8px;font-size:12.5px;
+ padding:6px 12px;color:var(--acc2);margin:4px 6px 4px 0}
+#result{display:none;background:var(--card);border-radius:12px;padding:14px;margin-top:20px;
+ box-shadow:0 1px 3px rgba(80,70,60,.1)}
+#result h3{color:var(--acc2);font-size:15px;margin:16px 0 4px}
+#result h3:first-child{margin-top:0}
+textarea#out{width:100%;height:300px;border:1px solid var(--line);border-radius:8px;padding:10px;
+ font-family:ui-monospace,Menlo,monospace;font-size:12px;line-height:1.5;color:#33302c;background:#faf8f5}
+.small{font-size:12px;color:var(--mute);margin:8px 0}
+.sc{display:flex;justify-content:space-between;font-size:13.5px;padding:5px 0;border-bottom:1px dashed var(--line)}
+.sc b{color:var(--acc2);font-variant-numeric:tabular-nums}
+.tag{display:inline-block;font-size:11px;border-radius:6px;padding:1px 7px;margin-left:6px;
+ background:#efe9e4;color:#7b7268}
+.tag.warn{background:#f3e0da;color:#A85A4A}
+.tag.ok{background:#e3ece4;color:#4a7a55}
+</style>
+</head>
+<body>
+<div id="bar"><i></i></div>
+<h1>自我探索测评</h1>
+<p class="sub">ASRS-v1.1 · PSS-10 · DERS-16 · VIA 优势 · 开放题</p>
+<div class="intro">
+ <div id="introText"></div>
+ <div style="margin-top:8px">共 <b id="totQ"></b> 题。量表部分约 10 分钟；开放题写作量大，建议另找一段安静的时间分开做。
+ 做完点底部按钮，页面给出一段可直接复制的文本——<b>那段文本就是你的结果，自己存好</b>。</div>
+ <div style="margin-top:8px;font-size:12px;color:#8b847b">
+ <b>这不是诊断</b>，也不替代专业评估。所有计分都在你的设备上完成，不上传、不留存、无广告；
+ 关掉页面作答即不保留，想留请先把结果文本复制走。</div>
+</div>
+<div class="chips" id="chips"></div>
+<div id="app"></div>
+<div id="result"></div>
+<div id="foot">
+ <div class="st" id="stat">已答 0 / 0</div>
+ <button class="main" id="go">出结果</button>
+</div>
+<script>
+const DATA = {"meta": {"asrsCut": 4}, "scales": [{"key": "ASRS", "name": "ASRS-v1.1 注意力自评", "kind": "likert", "score": "asrs", "intro": "WHO 成人自评量表筛查版，问的是「过去 6 个月」的情况。每题按发生频率选。", "note": "官方计分用「暗影区法」：不同题从不同频率起算命中，命中 ≥4 题提示值得进一步评估——这只是筛查，不是诊断。", "options": ["从不", "很少", "有时", "经常", "很经常"], "min": 0, "max": 4, "items": [{"slots": [{"t": "在完成其中最艰难的部分之后，您在处理某一项目的最后细节时是否常常有困难？", "thr": 2, "dim": "注意力不集中"}]}, {"slots": [{"t": "您在完成具有组织性质的任务时，是否时常有困难把事情整理安排好？", "thr": 2, "dim": "注意力不集中"}]}, {"slots": [{"t": "您是否时常有困难记住约会或应做的事？", "thr": 2, "dim": "注意力不集中"}]}, {"slots": [{"t": "如果一件事需要多动脑筋，您是否常常躲避或推延开始做它？", "thr": 3, "dim": "注意力不集中"}]}, {"slots": [{"t": "如果您不得不长时间坐下，您是否常常蠕动不安或者手脚动个不停？", "thr": 3, "dim": "多动冲动"}]}, {"slots": [{"t": "您是否时常感到过度活跃，强迫自己做事，就像上了发条的机器？", "thr": 3, "dim": "多动冲动"}]}]}, {"key": "PSS", "name": "PSS-10 知觉压力", "kind": "likert", "score": "pss", "intro": "问的是「过去一个月」的感受。这里测的不是你遇到了多少事，而是你主观觉得有多失控、多顶不住。", "note": "第 4、5、7、8 题为反向计分（已在结果里自动处理）。总分越高，主观压力越大。", "options": ["从不", "很少", "有时", "经常", "总是"], "min": 0, "max": 4, "items": [{"slots": [{"t": "在过去的一个月，你有多少次因为一些意外发生的事或者意料之外的事而心烦意乱？", "rev": false, "dim": "紧张感"}]}, {"slots": [{"t": "在过去的一个月，你有多少次觉得你无法掌控生活中的一些重要的事情？", "rev": false, "dim": "失控感"}]}, {"slots": [{"t": "在过去的一个月，你有多少次感到紧张和有压力？", "rev": false, "dim": "紧张感"}]}, {"slots": [{"t": "在过去的一个月，你有多少次对处理个人问题的能力感到有信心？", "rev": true, "dim": "失控感"}]}, {"slots": [{"t": "在过去的一个月，你有多少次觉得事情是按你的方式进行？", "rev": true, "dim": "失控感"}]}, {"slots": [{"t": "在过去的一个月，你有多少次觉得无法应付所有的事情？", "rev": false, "dim": "失控感"}]}, {"slots": [{"t": "在过去的一个月，你有多少次能够控制在生活中令你恼火的事情或者恼火的情绪？", "rev": true, "dim": "失控感"}]}, {"slots": [{"t": "在过去的一个月，你有多少次觉得能够掌握所有的事？", "rev": true, "dim": "失控感"}]}, {"slots": [{"t": "在过去的一个月，你有多少你会因为事情不在掌控之内而感到愤怒？", "rev": false, "dim": "紧张感"}]}, {"slots": [{"t": "在过去的一个月，你有多少次觉得困难重重，以至于你无法克服这些困难？", "rev": false, "dim": "失控感"}]}]}, {"key": "DERS", "name": "DERS-16 情绪调节", "kind": "likert", "score": "ders", "intro": "问的是「平时」的情况，不是你此刻的状态。看的是你处理情绪的方式，不是你有没有情绪。", "note": "五个维度：不接受负面情绪 / 无法实施目标行为 / 难以控制冲动 / 缺乏调节策略 / 情绪理解能力缺失。分越高表示该方面越困难。", "options": ["几乎从不", "有时", "大约一半的时间", "大部分时间", "几乎总是"], "min": 1, "max": 5, "items": [{"slots": [{"t": "当我感觉沮丧时，我会因为这样的感受而内疚。", "dim": "不接受负面情绪（对情绪反应的不接纳）"}]}, {"slots": [{"t": "当我感觉沮丧时，我会因为这样的感受而生自己的气。", "dim": "不接受负面情绪（对情绪反应的不接纳）"}]}, {"slots": [{"t": "当我感觉沮丧时，我感到自己很软弱。", "dim": "不接受负面情绪（对情绪反应的不接纳）"}]}, {"slots": [{"t": "当我感觉沮丧时，我很难将心思放在其他事情上。", "dim": "无法实施目标行为（难以进行目标导向行为）"}]}, {"slots": [{"t": "当我感觉沮丧时，我很难完成手上的事情。", "dim": "无法实施目标行为（难以进行目标导向行为）"}]}, {"slots": [{"t": "当我感觉沮丧时，我很难思考任何事情。", "dim": "无法实施目标行为（难以进行目标导向行为）"}]}, {"slots": [{"t": "当我感觉沮丧时，我很难掌控自己的行为。", "dim": "难以控制冲动行为"}]}, {"slots": [{"t": "当我感觉沮丧时，我的情绪会失控。", "dim": "难以控制冲动行为"}]}, {"slots": [{"t": "当我感觉沮丧时，我感觉自己的行为会失控。", "dim": "难以控制冲动行为"}]}, {"slots": [{"t": "当我感觉沮丧时，我总是认为自己迟早会陷入忧郁状态。", "dim": "缺乏情绪调节策略"}]}, {"slots": [{"t": "当我感觉沮丧时，我总是认为这种状态会持续很长时间。", "dim": "缺乏情绪调节策略"}]}, {"slots": [{"t": "当我感觉沮丧时，我总是找不到办法使自己感觉变好。", "dim": "缺乏情绪调节策略"}]}, {"slots": [{"t": "当我感觉沮丧时，我的情绪是极其强烈，难以抗拒的。", "dim": "缺乏情绪调节策略"}]}, {"slots": [{"t": "当我感觉沮丧时，我会觉得自己很差劲。", "dim": "缺乏情绪调节策略"}]}, {"slots": [{"t": "我很难弄清楚自己的感受是怎样的。", "dim": "情绪理解能力缺失（情绪不清晰）"}]}, {"slots": [{"t": "我常常不明白自己为什么会有某种感受。", "dim": "情绪理解能力缺失（情绪不清晰）"}]}]}, {"key": "VIA", "name": "VIA 优势 · 24 项", "kind": "likert", "score": "via", "intro": "24 项性格优势，每项两条陈述（①②），两条都要选。这项看的是「你哪里强」，不是「你哪里有问题」。", "note": "中文 24 项简版（改编，非官方 VIA-IS）。每项两条合计 2–10 分，越高该优势越突出；结果会给 Top 5。", "options": ["非常不像我（完全不符合）", "不像我", "一般", "像我", "非常像我（完全符合）"], "min": 1, "max": 5, "items": [{"label": "创造力", "virtue": "智慧与知识", "slots": [{"t": "当别人告诉我怎么做这件事时，我会不自觉地思考其它方法。"}, {"t": "我并没有什么特殊的动力去做原创性的工作。"}]}, {"label": "好奇", "virtue": "智慧与知识", "slots": [{"t": "我从不感到厌烦。"}, {"t": "我兴趣很少。"}]}, {"label": "开放性思维", "virtue": "智慧与知识", "slots": [{"t": "只有了解了所有情况我才会做决定。"}, {"t": "如果我喜欢这个选择，就不会再考虑其它的可能性。"}]}, {"label": "好学", "virtue": "智慧与知识", "slots": [{"t": "我想尽办法参与学习活动。"}, {"t": "我阅读非小说文学时常常觉得无趣。"}]}, {"label": "洞察力", "virtue": "智慧与知识", "slots": [{"t": "人们觉得我比同龄人聪明。"}, {"t": "别人很少寻求我的建议。"}]}, {"label": "勇敢", "virtue": "勇气", "slots": [{"t": "我能够忍受强烈的反对。"}, {"t": "我常常不能坚持我的信念。"}]}, {"label": "毅力", "virtue": "勇气", "slots": [{"t": "即使障碍重重我也会完成该做的事。"}, {"t": "我常常不能坚持自己的决定。"}]}, {"label": "正直", "virtue": "勇气", "slots": [{"t": "我总是遵守诺言。"}, {"t": "有时候我觉得自己像个骗子。"}]}, {"label": "热忱", "virtue": "勇气", "slots": [{"t": "我希望完全地投入生活，而不是当个旁观者。"}, {"t": "每天早上我会害怕起床。"}]}, {"label": "爱", "virtue": "仁爱", "slots": [{"t": "有人像关心他们自己一样关心我的感受和幸福。"}, {"t": "我不太容易接受他人的爱。"}]}, {"label": "仁慈", "virtue": "仁爱", "slots": [{"t": "我永远有时间帮助朋友。"}, {"t": "我很少给他人提供帮助。"}]}, {"label": "情商", "virtue": "仁爱", "slots": [{"t": "我总是知道别人做出某些行为的原因。"}, {"t": "我常常不知道自己为什么会出现这样的想法和感受。"}]}, {"label": "责任心", "virtue": "正义", "slots": [{"t": "我从小不缺席小组会议或团队活动。"}, {"t": "我单独工作比在团队中工作效率更高。"}]}, {"label": "公平", "virtue": "正义", "slots": [{"t": "我坚决地按照公正和公平的原则行事。"}, {"t": "如果我不喜欢某人，我就不愿意帮助他解决难题。"}]}, {"label": "领导力", "virtue": "正义", "slots": [{"t": "在团队中，我试图让每个人都融入进来。"}, {"t": "我不擅长计划团队的活动。"}]}, {"label": "宽恕", "virtue": "节制", "slots": [{"t": "我总是期望人们能够放下过去的错误重新开始。"}, {"t": "我不轻易接受道歉。"}]}, {"label": "谦虚", "virtue": "节制", "slots": [{"t": "我为自己是个普通人而骄傲。"}, {"t": "我喜欢谈论自己。"}]}, {"label": "谨慎", "virtue": "节制", "slots": [{"t": "“宁可事先谨慎有余，不要事后追悔莫及”是我座右铭之一。"}, {"t": "我的朋友觉得我的言行总是很冲动。"}]}, {"label": "自我管理", "virtue": "节制", "slots": [{"t": "我是个很自律的人。"}, {"t": "我没有定期锻炼的习惯。"}]}, {"label": "美感", "virtue": "超越", "slots": [{"t": "我常常被影视作品中展现的美震惊到说不出话。"}, {"t": "我常常忽略身边的美，除非有人跟我指出来。"}]}, {"label": "感恩", "virtue": "超越", "slots": [{"t": "我常常对关心我的人表达感谢。"}, {"t": "当我看着我的妻子，我并不觉得心存感激。"}]}, {"label": "乐观（希望）", "virtue": "超越", "slots": [{"t": "我总是看到事物的积极面。"}, {"t": "我对未来五年要做的事并没有清晰的计划。"}]}, {"label": "幽默", "virtue": "超越", "slots": [{"t": "每当我的朋友感到沮丧时，我都会想办法逗他们开心。"}, {"t": "很少人觉得跟我呆在一起是有趣的。"}]}, {"label": "信仰", "virtue": "超越", "slots": [{"t": "在过去 24 小时内，我至少花了 30 分钟的时间在祈祷、冥想和沉思。"}, {"t": "我并不相信终极力量或更高存在。"}]}]}, {"key": "SCT", "name": "句子完成 36 句", "kind": "text", "score": "none", "intro": "把每句话补完，凭第一反应写，不用通顺、不必深刻、不回改。写不下去就跳过。", "note": "自编题本，无计分、无常模。建议限时：每句 20 秒。", "items": [{"slots": [{"t": "我最欣赏自己的是……"}]}, {"slots": [{"t": "我最不愿意别人看到的一面是……"}]}, {"slots": [{"t": "独处的时候，我常常……"}]}, {"slots": [{"t": "如果只能保留一个身份，我会选……"}]}, {"slots": [{"t": "我做决定时，最看重的其实是……"}]}, {"slots": [{"t": "心里那个「我不够好」的声音，通常出现在……"}]}, {"slots": [{"t": "小时候我最怕的是……"}]}, {"slots": [{"t": "家里让我最受益的一条规矩是……"}]}, {"slots": [{"t": "父母身上我最想学的是……"}]}, {"slots": [{"t": "我长大后才发现被误解的一件事是……"}]}, {"slots": [{"t": "家人对我的期待里，我最想挣脱的是……"}]}, {"slots": [{"t": "如果童年能重来一次，我想改变……"}]}, {"slots": [{"t": "别人一旦靠得太近，我……"}]}, {"slots": [{"t": "我最难开口求助的时候是……"}]}, {"slots": [{"t": "一段关系里，我最怕失去的是……"}]}, {"slots": [{"t": "我信任一个人，通常是因为……"}]}, {"slots": [{"t": "让我想抽身离开的信号是……"}]}, {"slots": [{"t": "我希望有人能对我说一句……"}]}, {"slots": [{"t": "让我觉得白忙一场的是……"}]}, {"slots": [{"t": "我最有成就感的时刻，通常发生在……"}]}, {"slots": [{"t": "我明明做得好，却总不肯承认的是……"}]}, {"slots": [{"t": "我最受不了的同事类型是……"}]}, {"slots": [{"t": "如果不用考虑钱，我会去做……"}]}, {"slots": [{"t": "我对自己能力最深的一次怀疑，来自……"}]}, {"slots": [{"t": "焦虑上来的时候，我通常……"}]}, {"slots": [{"t": "真正让我生气的事其实很少，除非……"}]}, {"slots": [{"t": "我难过的时候最想做的事是……"}]}, {"slots": [{"t": "我的身体，往往比我更早知道……"}]}, {"slots": [{"t": "让我恢复过来的方式是……"}]}, {"slots": [{"t": "我一直在忍、还没说出口的是……"}]}, {"slots": [{"t": "五年后，我希望自己……"}]}, {"slots": [{"t": "我真正想留下的是……"}]}, {"slots": [{"t": "我愿意为之付出代价的一件事是……"}]}, {"slots": [{"t": "我最怕的不是失败，而是……"}]}, {"slots": [{"t": "如果只剩一年，我会立刻去……"}]}, {"slots": [{"t": "我还没原谅的那个人或那件事……"}]}]}, {"key": "OPEN", "name": "开放自述 9 题", "kind": "long", "score": "none", "intro": "没有标准答案。写得越具体越好——有时间、有场景、有动作，别写「应该怎样」，写「实际怎样」。", "note": "每题限 300 字左右。自编题本，无计分。", "items": [{"slots": [{"t": "你欣赏但自己不具备的一种品质是什么？为什么偏偏是它？"}]}, {"slots": [{"t": "别人对你的评价里，哪一条你最不服气？不服气在哪？"}]}, {"slots": [{"t": "一件你一直想做、却迟迟没开始的事——卡在哪一步？"}]}, {"slots": [{"t": "描述一个你反复撞上的同类型困境（不必给具体人名）。"}]}, {"slots": [{"t": "你在什么状态下最有能量？什么状态下最容易被耗尽？"}]}, {"slots": [{"t": "你对三年前的自己会说一句什么？对三年后的自己呢？"}]}, {"slots": [{"t": "有哪件事，你当时做得不算差，却一直没放过自己？"}]}, {"slots": [{"t": "你身上最像「家族传下来的」一样东西是什么？（习惯、脾气、观念都算）"}]}, {"slots": [{"t": "如果今天有人完全看穿你，你最不希望他先看到哪一点？"}]}]}], "footnote": "量表来源：ASRS-v1.1（WHO 官方中文 6 题筛查版）· PSS-10 中文版 · DERS-16 中文译 · VIA 中文 24 项简版（改编版，非官方 VIA-IS）。开放题为自编，不是标准量表。全部只作自我观察，不构成诊断，也不替代专业评估。"};
+/* 自我探索测评 · 交互与计分（app2.js） */
+const state = {};
+const app = document.getElementById('app');
+const key = (si,ii,k)=>si+':'+ii+':'+k;
+const val = (si,ii,k)=>state[key(si,ii,k)];
+const LK = DATA.scales.filter(s=>s.kind==='likert');
+const total = LK.reduce((a,s)=>a+s.items.reduce((b,it)=>b+it.slots.length,0),0);
+const nOpen = DATA.scales.filter(s=>s.kind!=='likert').reduce((a,s)=>a+s.items.length,0);
+document.getElementById('totQ').textContent = total;
+document.getElementById('introText').innerHTML =
+  DATA.scales.map(s=>s.name+'（'+s.items.length+'）').join('　·　') +
+  '<br><span style="color:#8b847b">全部免费、无广告、不上传——答案只留在你这台手机上。</span>' +
+  '<br><span style="color:#8b847b;font-size:12px">' + DATA.footnote + '</span>';
+
+/* ---- chips ---- */
+const chips = document.getElementById('chips');
+DATA.scales.forEach((s,si)=>{
+  const c=document.createElement('div');c.className='chip';c.textContent=s.name;
+  c.onclick=()=>document.getElementById('sec'+si).scrollIntoView({behavior:'smooth'});
+  chips.appendChild(c);
+});
+
+/* ---- 渲染 ---- */
+function likertRow(box, si, ii, k, opts, min, max){
+  const o=document.createElement('div');o.className='opts';
+  for(let v=min;v<=max;v++){
+    const b=document.createElement('div');b.className='opt';b.textContent=v;
+    b.onclick=()=>{state[key(si,ii,k)]=v;
+      [...o.children].forEach(c=>c.classList.remove('on'));b.classList.add('on');upd();};
+    o.appendChild(b);
+  }
+  box.appendChild(o);
+}
+function qt(box, n, text, small){
+  const q=document.createElement('div');q.className='qt';
+  if(small)q.style.cssText='font-size:13.5px;color:#5b554e;margin:8px 0 6px';
+  q.innerHTML='<i>'+n+'</i>';
+  q.appendChild(document.createTextNode(text));
+  box.appendChild(q);
+}
+
+DATA.scales.forEach((s,si)=>{
+  const h=document.createElement('h2');h.id='sec'+si;
+  h.innerHTML=s.name+' <span class="n">'+s.items.length+'</span>';
+  app.appendChild(h);
+  const n=document.createElement('div');n.className='note';
+  n.textContent=(s.intro||'')+(s.note?'  '+s.note:'');
+  app.appendChild(n);
+  if(s.kind==='likert'){
+    const lg=document.createElement('div');lg.className='legend';
+    lg.innerHTML=s.options.map((o,i)=>'<span>'+(i+s.min)+'＝'+o+'</span>').join('')+
+      '<span style="color:#b3aca2">（点数字选择）</span>';
+    app.appendChild(lg);
+  }
+  s.items.forEach((it,ii)=>{
+    const d=document.createElement('div');d.className='item';
+    if(s.kind==='likert' && it.slots.length===1){
+      qt(d,(ii+1)+'.',it.slots[0].t,false);
+      likertRow(d,si,ii,0,s.options,s.min,s.max);
+    } else if(s.kind==='likert'){
+      qt(d,(ii+1)+'.',it.label,false);
+      it.slots.forEach((sl,k)=>{
+        qt(d,'①②③'.charAt(k),sl.t,true);
+        likertRow(d,si,ii,k,s.options,s.min,s.max);
+      });
+    } else if(s.kind==='text'){
+      qt(d,(ii+1)+'.',it.slots[0].t,false);
+      const ip=document.createElement('input');ip.className='fill';ip.type='text';
+      ip.oninput=()=>{state[key(si,ii,0)]=ip.value;upd();};
+      d.appendChild(ip);
+      const hh=document.createElement('div');hh.className='hint';hh.textContent='凭第一反应写完，不回改';
+      d.appendChild(hh);
+    } else {
+      qt(d,(ii+1)+'.',it.slots[0].t,false);
+      const ta=document.createElement('textarea');ta.className='fill';
+      ta.oninput=()=>{state[key(si,ii,0)]=ta.value;upd();};
+      d.appendChild(ta);
+    }
+    app.appendChild(d);
+  });
+});
+
+/* ---- 进度 ---- */
+function lkDone(si){
+  const s=DATA.scales[si];let c=0,t=0;
+  s.items.forEach((it,ii)=>it.slots.forEach((sl,k)=>{
+    t++; if(state[key(si,ii,k)]!=null)c++;
+  }));
+  return [c,t];
+}
+function openDone(si){
+  const s=DATA.scales[si];let c=0;
+  s.items.forEach((it,ii)=>{const v=state[key(si,ii,0)];if(v&&v.trim())c++;});
+  return c;
+}
+function openAll(){let c=0;DATA.scales.forEach((s,si)=>{if(s.kind!=='likert')c+=openDone(si);});return c;}
+function upd(){
+  let done=0;
+  DATA.scales.forEach((s,si)=>{if(s.kind==='likert')done+=lkDone(si)[0];});
+  document.getElementById('stat').textContent=
+    '量表 已答 '+done+' / '+total+'　·　开放题 已写 '+openAll()+' / '+nOpen;
+  document.querySelector('#bar>i').style.width=(done/total*100)+'%';
+  [...chips.children].forEach((c,si)=>{
+    const s=DATA.scales[si];
+    c.classList.toggle('done', s.kind==='likert' && lkDone(si)[0]===lkDone(si)[1]);
+  });
+}
+upd();
+
+/* ---- 计分 ---- */
+const r2 = x=>Math.round(x*100)/100;
+
+function scoreScale(si){
+  const s=DATA.scales[si], o={rows:[],txt:[]};
+  if(s.score==='asrs'){
+    let hits=0,sum=0; const dim={};
+    s.items.forEach((it,ii)=>{
+      const v=val(si,ii,0), vv=(v==null?0:v); sum+=vv;
+      const hit = vv>=it.slots[0].thr ? 1:0; hits+=hit;
+      const dn=it.slots[0].dim;
+      if(!dim[dn])dim[dn]=[0,0]; dim[dn][0]+=hit; dim[dn][1]++;
+    });
+    const pos = hits>=DATA.meta.asrsCut;
+    o.rows.push({l:'暗影区命中', v:hits+' / '+s.items.length, t:pos?'筛查阳性':'筛查阴性'});
+    o.rows.push({l:'0–24 合计', v:sum+' / 24', t:sum>=14?'≥14':'—'});
+    Object.keys(dim).forEach(k=>o.rows.push({l:k, v:dim[k][0]+' / '+dim[k][1]+' 命中', t:''}));
+    o.txt.push('暗影区命中：'+hits+' / '+s.items.length+' → '+(pos?'筛查阳性':'筛查阴性')+'（阈值 ≥4）');
+    o.txt.push('0–24 合计：'+sum+'（备用口径 ≥14 为阳性）');
+    Object.keys(dim).forEach(k=>o.txt.push('  '+k+'：'+dim[k][0]+' / '+dim[k][1]+' 命中'));
+  }
+  else if(s.score==='pss'){
+    let sum=0; const dm={};
+    s.items.forEach((it,ii)=>{
+      let v=val(si,ii,0); v=(v==null?0:v);
+      if(it.slots[0].rev)v=4-v;
+      sum+=v; const d=it.slots[0].dim; (dm[d]=dm[d]||[]).push(v);
+    });
+    const band = sum<=13?'低':(sum<=26?'中':'高');
+    o.rows.push({l:'总分', v:sum+' / 40', t:band});
+    Object.keys(dm).forEach(k=>o.rows.push({l:k, v:dm[k].reduce((a,b)=>a+b,0)+' 分', t:dm[k].length+' 题'}));
+    o.txt.push('总分：'+sum+' / 40（'+band+'；0–13 低 / 14–26 中 / 27–40 高，非严格常模）');
+    Object.keys(dm).forEach(k=>o.txt.push('  '+k+'：'+dm[k].reduce((a,b)=>a+b,0)+'（'+dm[k].length+' 题）'));
+  }
+  else if(s.score==='ders'){
+    let sum=0; const dm={};
+    s.items.forEach((it,ii)=>{
+      const v=val(si,ii,0)||0; sum+=v;
+      const d=it.slots[0].dim; (dm[d]=dm[d]||[]).push(v);
+    });
+    o.rows.push({l:'总分', v:sum+' / 80', t:'越高越困难'});
+    Object.keys(dm).forEach(k=>o.rows.push({l:k, v:dm[k].reduce((a,b)=>a+b,0)+' 分', t:dm[k].length+' 题'}));
+    o.txt.push('总分：'+sum+' / 80（越高表示情绪调节越困难；无官方临床切点）');
+    Object.keys(dm).forEach(k=>o.txt.push('  '+k+'：'+dm[k].reduce((a,b)=>a+b,0)+'（'+dm[k].length+' 题）'));
+  }
+  else if(s.score==='via'){
+    const arr=s.items.map((it,ii)=>{
+      const a=val(si,ii,0)||0, b=val(si,ii,1)||0;
+      return {l:it.label, vt:it.virtue, v:a+(6-b)};
+    });
+    const sorted=[...arr].sort((x,y)=>y.v-x.v);
+    sorted.slice(0,5).forEach((x,i)=>o.rows.push({l:'Top'+(i+1)+'　'+x.l, v:x.v+' / 10', t:x.vt}));
+    o.txt.push('标志性优势 Top 5：'+sorted.slice(0,5).map(x=>x.l+'（'+x.v+'/10）').join('　'));
+    arr.forEach(x=>o.txt.push('  '+x.l+'（'+x.vt+'）：'+x.v+' / 10'));
+    const virt={}; arr.forEach(x=>{(virt[x.vt]=virt[x.vt]||[]).push(x.v);});
+    o.txt.push('美德均值：'+Object.keys(virt).map(k=>k+' '+r2(virt[k].reduce((a,b)=>a+b,0)/virt[k].length)).join('　'));
+  }
+  return o;
+}
+
+/* ---- 出结果 ---- */
+document.getElementById('go').onclick=()=>{
+  let miss=[];
+  DATA.scales.forEach((s,si)=>{if(s.kind==='likert'){const [c,t]=lkDone(si);if(c<t)miss.push(s.name+'（还差 '+(t-c)+'）');}});
+  let txt='=== 自我探索测评 · 结果 ===\n';
+  let html='<h3>结果</h3>';
+  if(miss.length)html+='<div class="small" style="color:#A85A4A">未答完：'+miss.join('；')+'。下面只按已答的部分算。</div>';
+  else html+='<div class="small" style="color:#4a7a55">量表已全部答完。</div>';
+
+  DATA.scales.forEach((s,si)=>{
+    if(s.kind==='likert'){
+      const sc=scoreScale(si);
+      txt+='\n['+s.name+']\n'+sc.txt.join('\n')+'\n';
+      html+='<h3>'+s.name+'</h3>';
+      sc.rows.forEach(r=>{
+        html+='<div class="sc"><span>'+r.l+(r.t?' <span class="tag">'+r.t+'</span>':'')+'</span><b>'+r.v+'</b></div>';
+      });
+    } else {
+      txt+='\n['+s.name+'　开放题原文]\n';
+      s.items.forEach((it,ii)=>{
+        const v=val(si,ii,0)||'';
+        txt+=(ii+1)+'. '+it.slots[0].t+'\n   → '+(v||'（未作答）')+'\n';
+      });
+      html+='<h3>'+s.name+'</h3><div class="small">开放题原文已放进下面的结果文本里，这里不重复显示。</div>';
+    }
+  });
+
+  let raw='RAW|';
+  DATA.scales.forEach((s,si)=>{
+    if(s.kind!=='likert')return;
+    raw+=s.key+':';
+    s.items.forEach((it,ii)=>it.slots.forEach((sl,k)=>{
+      const v=state[key(si,ii,k)];
+      raw+=(v==null?'x':v)+',';
+    }));
+    raw+='|';
+  });
+  txt+='\n'+raw+'\n';
+
+  const res=document.getElementById('result');
+  html+='<div class="small">下面这段已含全部结果与开放题原文，点栏内全选复制，粘回聊天即可：</div>'+
+        '<textarea id="out" readonly></textarea>'+
+        '<button class="main" style="margin-top:10px" id="cp">全选这段结果</button>';
+  res.style.display='block';res.innerHTML=html;
+  const out=document.getElementById('out');
+  out.value=txt;
+  out.style.height=Math.min(420,Math.max(240,txt.split('\n').length*15))+'px';
+  document.getElementById('cp').onclick=()=>{
+    out.focus();out.setSelectionRange(0,out.value.length);
+    try{document.execCommand('copy');}catch(e){}
+    document.getElementById('cp').textContent='已选中（如未复制请长按选择）';
+  };
+  res.scrollIntoView({behavior:'smooth'});
+};
+
+</script>
+</body>
+</html>
